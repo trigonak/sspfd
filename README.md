@@ -1,7 +1,8 @@
 sspfd
 =====
 
-`sspfd` if a super-simple profiler, able to measure timings with granularity of a single CPU cycle. `sspfd` gathers the timings and when the application decides to print the data, it does some statistical analysis no the results (i.e., std deviation, abs deviation, clustering of values) and prints the results.  
+sspfd if a super-simple profiler, able to measure timings with granularity of a single CPU cycle. sspfd gathers the timings and when the application decides to print the data, it does some statistical analysis no the results (i.e., std deviation, abs deviation, clustering of values) and prints the results.  
+For example, you can use sspfd to measure the latency of acquiring a lock, or of performing an atomic operation on some data.
 
 * Website             : https://github.com/trigonak/sspfd.git
 * Author              : Vasileios Trigonakis <vasileios.trigonakis@epfl.ch>
@@ -10,7 +11,9 @@ Installation:
 -------------
 
 Compile the library using `make` in the base folder.
+
 Test the installation using `sspfd_test` (see the available options with `./sspfd_test -h`).
+
 Use the interface in `sspfd.h` and link your application with the `libsspfd.a` library.
 
 Interface:
@@ -20,9 +23,11 @@ Interface:
 
 For an example of how to use `sspfd`, refer to `sspfd_test.c`.
 
+Interface of sspfd:
+
 * `SSPFDINIT(num_stores, num_entries, id)` : initialize `num_stores` stores, with `num_entries` number of measurement entries each. Use `id` as the thread id for printing purposes. Each store should be used to measure a single event.
 * `SSPFDTERM()` : terminate (free) the initialized stores.
-* `SSPFDI(store)` : start measurement (i.e., take start timestamp at this point) for store `store`
+* `SSPFDI(store)` : start measurement (i.e., take start timestamp at this point) for store `store`.
 * `SSPFDO(store, entry)` : stop measuring (i.e., take stop timestamp at this point) for store `store` and store the duration since `SSPFDI(store)` in entry `entry`. 
 * `SSPFDSTATS(store, num_ops, statsp)` : generate statistics for the measurements in store `store` for the first `num_ops` values. Store the results in `statsp` pointer to a `sspfd_stats_t` structure. 
 * `SSPFDPRINT(statsp)` : print the statistics in `statsp` pointer to a `sspfd_stats_t` structure. 
