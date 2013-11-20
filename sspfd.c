@@ -1,8 +1,8 @@
 /*   
- *   File: sssspfd.c
+ *   File: sspfd.c
  *   Author: Vasileios Trigonakis <vasileios.trigonakis@epfl.ch>
  *   Description: a fine-grained profiler based on rdtsc
- *   sspfd.c is part of ccbench
+ *   sspfd.c is part of sspfd
  *
  * The MIT License (MIT)
  *
@@ -29,11 +29,11 @@
 
 #include "sspfd.h"
 
-static size_t sspfd_num_stores = SSPFD_NUM_STORES;
-volatile ticks** sspfd_store;
-volatile ticks* _sspfd_s;
-volatile ticks sspfd_correction;
-size_t SSPFD_ID;
+static __thread size_t sspfd_num_stores = SSPFD_NUM_STORES;
+__thread volatile ticks** sspfd_store;
+__thread volatile ticks* _sspfd_s;
+__thread volatile ticks sspfd_correction;
+__thread size_t SSPFD_ID = 0;
 
 void 
 sspfd_store_init(size_t num_stores, size_t num_entries, size_t id)
@@ -57,9 +57,9 @@ sspfd_store_init(size_t num_stores, size_t num_entries, size_t id)
   uint32_t print_warning = 0;
 
 
-  /* enforcing max freq if freq scaling is enabled */
+  /* "enforcing" max freq if freq scaling is enabled */
   volatile uint64_t speed;
-  for (speed = 0; speed < 20e6; speed+=4)
+  for (speed = 0; speed < 20e6; speed += 4)
     {
       speed--;
     }
@@ -176,8 +176,6 @@ sspfd_print_stats(const sspfd_stats_t* sspfd_stats)
 	sspfd_stats->num_dev_rst, vrest, sspfd_stats->avg_rst, sspfd_stats->abs_dev_rst, sspfd_stats->std_dev_rst, std_rspp);
 }
 
-#define SSPFD_VAL_UP_LIMIT 1500	/* do not consider values higher than this value */
-
 void
 sspfd_get_stats(const size_t store, const size_t num_vals, sspfd_stats_t* sspfd_stats)
 {
@@ -188,7 +186,7 @@ sspfd_get_stats(const size_t store, const size_t num_vals, sspfd_stats_t* sspfd_
   uint32_t i;
   for (i = 0; i < num_vals; i++)
     {
-      if ((int64_t) vals[i] < 0 || vals[i] > SSPFD_VAL_UP_LIMIT)
+      if ((int64_t) vals[i] < 0)
 	{
 	  vals[i] = 0;
 	}
