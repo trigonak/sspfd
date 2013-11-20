@@ -1,3 +1,31 @@
+/*   
+ *   File: sspfd_test.c
+ *   Author: Vasileios Trigonakis <vasileios.trigonakis@epfl.ch>
+ *   Description: sspfd usage example
+ *   sspfd_test.c is part of sspfd
+ *
+ * The MIT License (MIT)
+ *
+ * Copyright (C) 2013  Vasileios Trigonakis
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of
+ * this software and associated documentation files (the "Software"), to deal in
+ * the Software without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+ * the Software, and to permit persons to whom the Software is furnished to do so,
+ * subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+ * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ * IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ *
+ */
 
 #include <assert.h>
 #include <getopt.h>
@@ -24,13 +52,14 @@ size_t num_stores = DEFAULT_NUM_STORES;
 int
 main(int argc, char **argv)
 {
-  struct option long_options[] = {
-    // These options don't set a flag
-    {"help",                      no_argument,       NULL, 'h'},
-    {"num_ops",                   required_argument, NULL, 'o'},
-    {"num_stores",                required_argument, NULL, 's'},
-    {NULL, 0, NULL, 0}
-  };
+  struct option long_options[] = 
+    {
+      // These options don't set a flag
+      {"help",                      no_argument,       NULL, 'h'},
+      {"num_ops",                   required_argument, NULL, 'o'},
+      {"num_stores",                required_argument, NULL, 's'},
+      {NULL, 0, NULL, 0}
+    };
 
   int i, c;
 
@@ -82,7 +111,7 @@ main(int argc, char **argv)
   assert(num_ops > 0);
   
   SSPFD_PRINT("* initializing %lu stores of %lu entries", num_stores, num_ops);
-  sspfd_store_init(num_stores, num_ops, 0);
+  SSPFDINIT(num_stores, num_ops, 0);
 
   volatile int* dummy = (volatile int*) malloc(sizeof(int));
   assert(dummy != NULL);
@@ -108,25 +137,25 @@ main(int argc, char **argv)
 	      }
 
 	    sspfd_stats_t stats;
-	    sspfd_get_stats(num_stores, num_ops, &stats);
-	    sspfd_print_stats(&stats);
+	    SSPFDSTATS(num_stores, num_ops, &stats);
+	    SSPFDPRINT(&stats);
 	  }
 	  break;
 	case 1:
 	  {
-	    SSPFD_PRINT("** asm volatile(\"\")");
+	    SSPFD_PRINT("** asm volatile(\"mfence\")");
 
 	    size_t r;
 	    for (r = 0; r < num_ops; r++)
 	      {
 		SSPFDI(num_stores);
-		asm volatile ("");
+		asm volatile ("mfence");
 		SSPFDO(num_stores, r);
 	      }
 
 	    sspfd_stats_t stats;
-	    sspfd_get_stats(num_stores, num_ops, &stats);
-	    sspfd_print_stats(&stats);
+	    SSPFDSTATS(num_stores, num_ops, &stats);
+	    SSPFDPRINT(&stats);
 	  }
 	  break;
 	case 2:
@@ -142,8 +171,26 @@ main(int argc, char **argv)
 	      }
 
 	    sspfd_stats_t stats;
-	    sspfd_get_stats(num_stores, num_ops, &stats);
-	    sspfd_print_stats(&stats);
+	    SSPFDSTATS(num_stores, num_ops, &stats);
+	    SSPFDPRINT(&stats);
+	  }
+	  break;
+	case 3:
+	  {
+	    SSPFD_PRINT("** for (rr = 0; rr < 1e3; rr++);");
+
+	    size_t r;
+	    for (r = 0; r < num_ops; r++)
+	      {
+		SSPFDI(num_stores);
+		volatile size_t rr;
+		for (rr = 0; rr < 1e3; rr++);
+		SSPFDO(num_stores, r);
+	      }
+
+	    sspfd_stats_t stats;
+	    SSPFDSTATS(num_stores, num_ops, &stats);
+	    SSPFDPRINT(&stats);
 	  }
 	  break;
 	default:
@@ -166,15 +213,15 @@ main(int argc, char **argv)
 	      }
 
 	    sspfd_stats_t stats;
-	    sspfd_get_stats(num_stores, num_ops, &stats);
-	    sspfd_print_stats(&stats);
+	    SSPFDSTATS(num_stores, num_ops, &stats);
+	    SSPFDPRINT(&stats);
 	  }
 	  break;
 	}
 
     }
 
-  sspfd_store_term();
+  SSPFDTERM();
   free((void*) dummy);
 
   return 0;
