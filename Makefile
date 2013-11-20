@@ -1,3 +1,4 @@
+CC = gcc
 CFLAGS = -O3 -Wall
 LDFLAGS = -lsspfd -lm -lrt
 VER_FLAGS = -D_GNU_SOURCE
@@ -9,9 +10,9 @@ endif
 
 UNAME := $(shell uname -n)
 
-all: sspfd_test.c
+all: libsspfd.a sspfd_test
 
-default: libsspfd.a
+default: all
 
 sspfd_test: libsspfd.a sspfd_test.o
 	$(CC) $(VER_FLAGS) -o sspfd_test sspfd_test.o $(CFLAGS) $(LDFLAGS) -L./ 
