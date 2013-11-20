@@ -2,7 +2,7 @@
  *   File: sspfd.h
  *   Author: Vasileios Trigonakis <vasileios.trigonakis@epfl.ch>
  *   Description: sspfd interface, structures, and helper functions
- *   sspfd.h is part of ccbench
+ *   sspfd.h is part of sspfd
  *
  * The MIT License (MIT)
  *
@@ -37,10 +37,9 @@
 #include <stdlib.h>
 #include <math.h>
 
-/* #include "common.h" */
+#define SSPFD_DO_TIMINGS 1
 
-extern size_t SSPFD_ID;
-#define SSPFD_PRINT(args...) printf("[%02lu] ", SSPFD_ID); printf(args); printf("\n"); fflush(stdout)
+#define SSPFD_PRINT(args...) printf("[%02lu] ", sspfd_get_id()); printf(args); printf("\n"); fflush(stdout)
 
 typedef uint64_t ticks;
 
@@ -76,9 +75,6 @@ static inline ticks getticks()
   return get_cycle_count();
 }
 #endif
-
-
-#define DO_TIMINGS
 
 #if !defined(PREFETCHW)
 #  if defined(__x86_64__) | defined(__i386__)
@@ -130,17 +126,26 @@ typedef struct sspfd_stats
 #define SSPFD_NUM_STORES 2
 #define SSPFD_PRINT_MAX 200
 
-extern volatile ticks** sspfd_store;
-extern volatile ticks* _sspfd_s;
-extern volatile ticks sspfd_correction;
-#if !defined(DO_TIMINGS)
-#  define SSPFDINIT(num_entries) 
+extern __thread volatile ticks** sspfd_store;
+extern __thread volatile ticks* _sspfd_s;
+extern __thread volatile ticks sspfd_correction;
+#if SSPFD_DO_TIMINGS != 1
+#  define SSPFDINIT(num_stores, num_entries, id) 
+#  define SSPFDTERM()
 #  define SSPFDI(store) 
 #  define SSPFDO(store, entry) 
 #  define SSPFDP(store, num_vals) 
 #  define SSPFDPN(store, num_vals, num_print)
-#else  /* DO_TIMINGS */
-#  define SSPFDINIT(num_entries) sspfd_store_init(num_entries)
+#  define SSPFDPREFTCH(store, entry) 
+#  define SSPFDSTATS(store, num_ops, statsp)
+#  define SSPFDPRINT(statsp)
+#  define SSPFDPRINTV(num_store, num_print)
+
+#else  /* SSPFD_DO_TIMINGS */
+
+#  define SSPFDINIT(num_stores, num_entries, id) sspfd_store_init(num_stores, num_entries, id)
+
+#  define SSPFDTERM() sspfd_store_term()
 
 #  define SSPFDI(store)				\
   {						\
@@ -166,12 +171,26 @@ extern volatile ticks sspfd_correction;
     sspfd_get_stats(store, num_vals, &ad);				\
     sspfd_print_stats(&ad);						\
   }
-#endif /* !DO_TIMINGS */
 
-# define SSPFDPREFTCH(store, entry)		\
-  SSPFDI(store);					\
+#  define SSPFDPREFTCH(store, entry)		\
+  SSPFDI(store);				\
   SSPFDO(store, entry);
 
+#  define SSPFDSTATS(num_stores, num_ops, statsp) sspfd_get_stats(num_stores, num_ops, &stats)
+#  define SSPFDPRINT(statsp) sspfd_print_stats(statsp)
+
+#  define SSPFDPRINTV(num_store, num_print)				\
+  {									\
+    uint32_t _i;							\
+    uint32_t p = num_print;						\
+    if (p > num_vals) { p = num_vals; }					\
+    for (_i = 0; _i < p; _i++)						\
+      {									\
+	printf("[%3d: %4ld] ", _i, (long int) sspfd_store[store][_i]);	\
+      }									\
+  }
+
+#endif /* !SSPFD_DO_TIMINGS */
 
 
 inline void sspfd_set_id(size_t id);
