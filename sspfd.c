@@ -83,8 +83,10 @@ sspfd_store_init(size_t num_stores, size_t num_entries, size_t id)
     {
       if (print_warning++ == 1)	/* print warning if 2 failed attempts */
 	{
+#if defined(DEBUG)
 	  printf("* warning: avg sspfd correction is %.1f with std deviation: %.1f%%. Recalculating.\n", 
 		 ad.avg, std_pp);
+#endif
 	}
       if (tries-- > 0)
 	{
@@ -99,7 +101,9 @@ sspfd_store_init(size_t num_stores, size_t num_entries, size_t id)
   sspfd_correction = ad.avg;
   assert(sspfd_correction > 0);
   
+#if defined(DEBUG)
   printf(" -- sspfd correction: %llu (std deviation: %.1f%%)\n", (long long unsigned int) sspfd_correction, std_pp);
+#endif
 }
 
 void
