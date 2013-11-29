@@ -181,6 +181,7 @@ typedef struct sspfd_stats
 
 #define SSPFD_PRINT_MAX 200
 
+extern __thread volatile size_t sspfd_num_stores;
 extern __thread volatile ticks** sspfd_store;
 extern __thread volatile ticks* _sspfd_s;
 extern __thread volatile ticks sspfd_correction;

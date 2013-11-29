@@ -29,7 +29,7 @@
 
 #include "sspfd.h"
 
-static __thread size_t sspfd_num_stores = SSPFD_NUM_STORES;
+__thread volatile size_t sspfd_num_stores;
 __thread volatile ticks** sspfd_store;
 __thread volatile ticks* _sspfd_s;
 __thread volatile ticks sspfd_correction;
