@@ -39,6 +39,63 @@
 
 #define SSPFD_DO_TIMINGS 1
 
+#if SSPFD_DO_TIMINGS != 1	/* empty macros when not benchmarkings */
+/* 
+ * initialize `num_stores` stores, with `num_entries` number of measurement entries each. 
+ * Use `id` as the thread id for printing purposes. Each store should be used to measure a single event. 
+ */
+#  define SSPFDINIT(num_stores, num_entries, id) 
+
+/* 
+ * terminate (free) the initialized stores.
+ */
+#  define SSPFDTERM()
+
+/* 
+ * start measurement (i.e., take start timestamp at this point) for store `store`.
+ */
+#  define SSPFDI(store) 
+
+/* 
+ * stop measuring (i.e., take stop timestamp at this point) for store `store` and store the duration
+ * since `SSPFDI(store)` in entry `entry`.
+ */
+#  define SSPFDO(store, entry) 
+
+/* 
+ * generate statistics and print them for the first `num_vals` values of store `store`.
+ */
+#  define SSPFDP(store, num_vals) 
+
+/* 
+ * generate statistics and print them for the first `num_vals` values of store `store`. 
+ * Additionally, print the first `num_print` measurements of this store.
+ */
+#  define SSPFDPN(store, num_vals, num_print)
+
+/* 
+ * prefetch entry `entry` for store `store`, so that the overheads are minimized (only 
+ * necessary if the application has accessed a huge amount of data before using `sspfd`. 
+ */
+#  define SSPFDPREFTCH(store, entry) 
+
+/* 
+ * generate statistics for the measurements in store `store` for the first `num_ops` values. 
+ * Store the results in `statsp` pointer to a `sspfd_stats_t` structure. 
+ */
+#  define SSPFDSTATS(store, num_ops, statsp)
+
+/* 
+ * print the statistics in `statsp` pointer to a `sspfd_stats_t` structure.  
+*/
+#  define SSPFDPRINT(statsp)
+
+/* 
+ * print the first `num_print` measurements from store `store`.
+ */
+#  define SSPFDPRINTV(num_store, num_print)
+#endif 
+
 #define SSPFD_PRINT(args...) printf("[%02lu] ", sspfd_get_id()); printf(args); printf("\n"); fflush(stdout)
 
 typedef uint64_t ticks;
@@ -127,19 +184,8 @@ typedef struct sspfd_stats
 extern __thread volatile ticks** sspfd_store;
 extern __thread volatile ticks* _sspfd_s;
 extern __thread volatile ticks sspfd_correction;
-#if SSPFD_DO_TIMINGS != 1
-#  define SSPFDINIT(num_stores, num_entries, id) 
-#  define SSPFDTERM()
-#  define SSPFDI(store) 
-#  define SSPFDO(store, entry) 
-#  define SSPFDP(store, num_vals) 
-#  define SSPFDPN(store, num_vals, num_print)
-#  define SSPFDPREFTCH(store, entry) 
-#  define SSPFDSTATS(store, num_ops, statsp)
-#  define SSPFDPRINT(statsp)
-#  define SSPFDPRINTV(num_store, num_print)
 
-#else  /* SSPFD_DO_TIMINGS */
+#if SSPFD_DO_TIMINGS == 1
 
 #  define SSPFDINIT(num_stores, num_entries, id) sspfd_store_init(num_stores, num_entries, id)
 
