@@ -122,8 +122,6 @@ typedef struct sspfd_stats
   uint32_t num_dev_rst;
 } sspfd_stats_t;
 
-
-#define SSPFD_NUM_STORES 2
 #define SSPFD_PRINT_MAX 200
 
 extern __thread volatile ticks** sspfd_store;
@@ -156,6 +154,13 @@ extern __thread volatile ticks sspfd_correction;
 #  define SSPFDO(store, entry)						\
   asm volatile ("");							\
   sspfd_store[store][entry] =  getticks() - _sspfd_s[store] - sspfd_correction; \
+  }
+
+#  define SSPFDP(store, num_vals)					\
+  {									\
+    sspfd_stats_t ad;							\
+    sspfd_get_stats(store, num_vals, &ad);				\
+    sspfd_print_stats(&ad);						\
   }
 
 #  define SSPFDPN(store, num_vals, num_print)				\
