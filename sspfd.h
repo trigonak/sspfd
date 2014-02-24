@@ -74,6 +74,13 @@
 #  define SSPFDPN(store, num_vals, num_print)
 
 /* 
+ * generate statistics and print them for the first `num_vals` values of store `store`. 
+ * Additionally, print the first `num_print` measurements of this store, in a comma-
+ * seperated format.
+ */
+#  define SSPFDPN_COMMA(store, num_vals, num_print)
+
+/* 
  * prefetch entry `entry` for store `store`, so that the overheads are minimized (only 
  * necessary if the application has accessed a huge amount of data before using `sspfd`. 
  */
@@ -100,6 +107,7 @@
 
 typedef uint64_t ticks;
 
+#if !defined(_GETTICKS_H_) && !defined(_H_GETTICKS_)
 #if defined(__i386__)
 static inline ticks 
 getticks(void) 
@@ -132,6 +140,7 @@ static inline ticks getticks()
   return get_cycle_count();
 }
 #endif
+#endif	/* _H_GETTICKS_ */
 
 #if !defined(PREFETCHW)
 #  if defined(__x86_64__) | defined(__i386__)
@@ -219,6 +228,21 @@ extern __thread volatile ticks sspfd_correction;
       {									\
 	printf("[%3d: %4ld] ", _i, (long int) sspfd_store[store][_i]);	\
       }									\
+    sspfd_stats_t ad;							\
+    sspfd_get_stats(store, num_vals, &ad);				\
+    sspfd_print_stats(&ad);						\
+  }
+
+#  define SSPFDPN_COMMA(store, num_vals, num_print)			\
+  {									\
+    uint32_t _i;							\
+    uint32_t p = num_print;						\
+    if (p > num_vals) { p = num_vals; }					\
+    for (_i = 0; _i < p; _i++)						\
+      {									\
+	printf("%ld,", (long int) sspfd_store[store][_i]);		\
+      }									\
+    printf("\n");							\
     sspfd_stats_t ad;							\
     sspfd_get_stats(store, num_vals, &ad);				\
     sspfd_print_stats(&ad);						\
