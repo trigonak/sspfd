@@ -57,10 +57,22 @@
 #  define SSPFDI(store) 
 
 /* 
+ * only if sspfd_get_id() == id, start measurement (i.e., take start timestamp at this point) 
+ * for store `store`,
+ */
+#  define SSPFDI_ID(store, id) 
+
+/* 
  * stop measuring (i.e., take stop timestamp at this point) for store `store` and store the duration
  * since `SSPFDI(store)` in entry `entry`.
  */
 #  define SSPFDO(store, entry) 
+
+/* 
+ * if sspfd_get_id() == id, stop measuring (i.e., take stop timestamp at this point) for store `store` 
+ * and store the duration since `SSPFDI(store)` in entry `entry`.
+ */
+#  define SSPFDO_ID(store, entry) 
 
 /* 
  * generate statistics and print them for the first `num_vals` values of store `store`.
@@ -94,7 +106,7 @@
 
 /* 
  * print the statistics in `statsp` pointer to a `sspfd_stats_t` structure.  
-*/
+ */
 #  define SSPFDPRINT(statsp)
 
 /* 
@@ -104,7 +116,7 @@
 /* 
  * print the first `num_print` measurements from store `store`, comma separated.
  */
-#  define SSPFDPRINTV_COMMA(num_store, num_print)
+#  define SSPFDPRINTV_COMMA(num_store, num_vals, num_print)
 
 #endif 
 
@@ -211,17 +223,32 @@ extern __thread volatile ticks sspfd_correction;
   asm volatile ("");				\
   _sspfd_s[store] = getticks();
 
+#  define SSPFDI_ID(store, id)			\
+  {						\
+  asm volatile ("");				\
+  if (sspfd_get_id() == id)			\
+    {						\
+      _sspfd_s[store] = getticks();		\
+    }
 
 #  define SSPFDO(store, entry)						\
   asm volatile ("");							\
   sspfd_store[store][entry] =  getticks() - _sspfd_s[store] - sspfd_correction; \
   }
 
-#  define SSPFDP(store, num_vals)					\
-  {									\
-    sspfd_stats_t ad;							\
-    sspfd_get_stats(store, num_vals, &ad);				\
-    sspfd_print_stats(&ad);						\
+#  define SSPFDO_ID(store, entry, id)					\
+  asm volatile ("");							\
+  if (sspfd_get_id() == id)						\
+    {									\
+      sspfd_store[store][entry] =  getticks() - _sspfd_s[store] - sspfd_correction; \
+    }									\
+  }
+
+#  define SSPFDP(store, num_vals)		\
+  {						\
+    sspfd_stats_t ad;				\
+    sspfd_get_stats(store, num_vals, &ad);	\
+    sspfd_print_stats(&ad);			\
   }
 
 #  define SSPFDPN(store, num_vals, num_print)				\
@@ -238,19 +265,19 @@ extern __thread volatile ticks sspfd_correction;
     sspfd_print_stats(&ad);						\
   }
 
-#  define SSPFDPN_COMMA(store, num_vals, num_print)			\
-  {									\
-    uint32_t _i;							\
-    uint32_t p = num_print;						\
-    if (p > num_vals) { p = num_vals; }					\
-    for (_i = 0; _i < p; _i++)						\
-      {									\
-	printf("%ld,", (long int) sspfd_store[store][_i]);		\
-      }									\
-    printf("\n");							\
-    sspfd_stats_t ad;							\
-    sspfd_get_stats(store, num_vals, &ad);				\
-    sspfd_print_stats(&ad);						\
+#  define SSPFDPN_COMMA(store, num_vals, num_print)		\
+  {								\
+    uint32_t _i;						\
+    uint32_t p = num_print;					\
+    if (p > num_vals) { p = num_vals; }				\
+    for (_i = 0; _i < p; _i++)					\
+      {								\
+	printf("%ld,", (long int) sspfd_store[store][_i]);	\
+      }								\
+    printf("\n");						\
+    sspfd_stats_t ad;						\
+    sspfd_get_stats(store, num_vals, &ad);			\
+    sspfd_print_stats(&ad);					\
   }
 
 #  define SSPFDPREFTCH(store, entry)		\
@@ -271,15 +298,16 @@ extern __thread volatile ticks sspfd_correction;
       }									\
   }
 
-#  define SSPFDPRINTV_COMMA(num_store, num_print)			\
-  {									\
-    uint32_t _i;							\
-    uint32_t p = num_print;						\
-    if (p > num_vals) { p = num_vals; }					\
-    for (_i = 0; _i < p; _i++)						\
-      {									\
-	printf("%ld,", (long int) sspfd_store[store][_i]);		\
-      }									\
+#  define SSPFDPRINTV_COMMA(store, num_vals, num_print)		\
+  {								\
+    uint32_t _i;						\
+    uint32_t p = num_print;					\
+    if (p > num_vals) { p = num_vals; }				\
+    for (_i = 0; _i < p; _i++)					\
+      {								\
+	printf("%ld,", (long int) sspfd_store[store][_i]);	\
+      }								\
+    printf("\n");						\
   }
 
 #endif /* !SSPFD_DO_TIMINGS */
