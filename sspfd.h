@@ -101,6 +101,11 @@
  * print the first `num_print` measurements from store `store`.
  */
 #  define SSPFDPRINTV(num_store, num_print)
+/* 
+ * print the first `num_print` measurements from store `store`, comma separated.
+ */
+#  define SSPFDPRINTV_COMMA(num_store, num_print)
+
 #endif 
 
 #define SSPFD_PRINT(args...) printf("[%02lu] ", sspfd_get_id()); printf(args); printf("\n"); fflush(stdout)
@@ -263,6 +268,17 @@ extern __thread volatile ticks sspfd_correction;
     for (_i = 0; _i < p; _i++)						\
       {									\
 	printf("[%3d: %4ld] ", _i, (long int) sspfd_store[store][_i]);	\
+      }									\
+  }
+
+#  define SSPFDPRINTV_COMMA(num_store, num_print)			\
+  {									\
+    uint32_t _i;							\
+    uint32_t p = num_print;						\
+    if (p > num_vals) { p = num_vals; }					\
+    for (_i = 0; _i < p; _i++)						\
+      {									\
+	printf("%ld,", (long int) sspfd_store[store][_i]);		\
       }									\
   }
 
