@@ -63,6 +63,18 @@
 #  define SSPFDI_ID(store, id) 
 
 /* 
+ * start measurement (i.e., take start timestamp at this point) for any store. Need to do the calc
+ * with SSPFDO_G() then.
+ */
+#  define SSPFDI_G() 
+
+/* 
+ * only if sspfd_get_id() == id, start measurement (i.e., take start timestamp at this point) 
+ * for any store. Need to do the calc with SSPFDO_ID_G() then.
+ */
+#  define SSPFDI_ID_G(id) 
+
+/* 
  * stop measuring (i.e., take stop timestamp at this point) for store `store` and store the duration
  * since `SSPFDI(store)` in entry `entry`.
  */
@@ -73,6 +85,18 @@
  * and store the duration since `SSPFDI(store)` in entry `entry`.
  */
 #  define SSPFDO_ID(store, entry) 
+
+/* 
+ * stop measuring (i.e., take stop timestamp at this point) for SSPFDI_G and store the duration
+ * since `SSPFDI(store)` in entry `entry`.
+ */
+#  define SSPFDO_G(store, entry) 
+
+/* 
+ * if sspfd_get_id() == id, stop measuring (i.e., take stop timestamp at this point) for SSPFDI_ID_G
+ * and store the duration since `SSPFDI(store)` in entry `entry`.
+ */
+#  define SSPFDO_ID_G(store, entry, id) 
 
 /* 
  * generate statistics and print them for the first `num_vals` values of store `store`.
@@ -210,6 +234,7 @@ typedef struct sspfd_stats
 extern __thread volatile size_t sspfd_num_stores;
 extern __thread volatile ticks** sspfd_store;
 extern __thread volatile ticks* _sspfd_s;
+extern __thread ticks _sspfd_s_global;
 extern __thread volatile ticks sspfd_correction;
 
 #if SSPFD_DO_TIMINGS == 1
@@ -231,6 +256,17 @@ extern __thread volatile ticks sspfd_correction;
       _sspfd_s[store] = getticks();		\
     }
 
+#  define SSPFDI_G()				\
+  asm volatile ("");				\
+  _sspfd_s_global = getticks();
+
+#  define SSPFDI_ID_G(id)			\
+  asm volatile ("");				\
+  if (sspfd_get_id() == id)			\
+    {						\
+      _sspfd_s_global = getticks();		\
+    }
+
 #  define SSPFDO(store, entry)						\
   asm volatile ("");							\
   sspfd_store[store][entry] =  getticks() - _sspfd_s[store] - sspfd_correction; \
@@ -243,6 +279,19 @@ extern __thread volatile ticks sspfd_correction;
       sspfd_store[store][entry] =  getticks() - _sspfd_s[store] - sspfd_correction; \
     }									\
   }
+
+#  define SSPFDO_G(store, entry)					\
+  asm volatile ("");							\
+  sspfd_store[store][entry] =  getticks() - _sspfd_s_global - sspfd_correction;
+
+
+#  define SSPFDO_ID_G(store, entry, id)					\
+  asm volatile ("");							\
+  if (sspfd_get_id() == id)						\
+    {									\
+      sspfd_store[store][entry] =  getticks() - _sspfd_s_global - sspfd_correction; \
+    }								       
+
 
 #  define SSPFDP(store, num_vals)		\
   {						\

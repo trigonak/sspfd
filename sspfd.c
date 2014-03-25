@@ -32,6 +32,7 @@
 __thread volatile size_t sspfd_num_stores;
 __thread volatile ticks** sspfd_store;
 __thread volatile ticks* _sspfd_s;
+__thread ticks _sspfd_s_global;
 __thread volatile ticks sspfd_correction;
 __thread size_t SSPFD_ID = 0;
 
