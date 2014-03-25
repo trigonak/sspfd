@@ -113,7 +113,6 @@
  * generate statistics and print them for the first `num_vals` values of store `store`. 
  * Additionally, print the first `num_print` measurements of this store, in a comma-
  * seperated format.
- * Does NOT print the values equal to.
  */
 #  define SSPFDPN_COMMA(store, num_vals, num_print)
 
@@ -140,7 +139,6 @@
 #  define SSPFDPRINTV(num_store, num_print)
 /* 
  * print the first `num_print` measurements from store `store`, comma separated.
- * Does NOT print the values equal to.
  */
 #  define SSPFDPRINTV_COMMA(num_store, num_vals, num_print)
 
@@ -323,10 +321,7 @@ extern __thread volatile ticks sspfd_correction;
     if (p > num_vals) { p = num_vals; }				\
     for (_i = 0; _i < p; _i++)					\
       {								\
-	if ((long int) sspfd_store[store][_i])			\
-	  {							\
 	    printf("%ld,", (long int) sspfd_store[store][_i]);	\
-	  }							\
       }								\
     printf("\n");						\
     sspfd_stats_t ad;						\
@@ -359,10 +354,7 @@ extern __thread volatile ticks sspfd_correction;
     if (p > num_vals) { p = num_vals; }				\
     for (_i = 0; _i < p; _i++)					\
       {								\
-	if ((long int) sspfd_store[store][_i])			\
-	  {							\
-	    printf("%ld,", (long int) sspfd_store[store][_i]);	\
-	  }							\
+	printf("%ld,", (long int) sspfd_store[store][_i]);	\
       }								\
     printf("\n");						\
   }
