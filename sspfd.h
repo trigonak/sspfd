@@ -238,7 +238,7 @@ typedef struct sspfd_stats
 extern __thread volatile size_t sspfd_num_stores;
 extern __thread volatile ticks** sspfd_store;
 extern __thread volatile ticks* _sspfd_s;
-extern __thread ticks _sspfd_s_global;
+extern __thread volatile ticks _sspfd_s_global;
 extern __thread volatile ticks sspfd_correction;
 
 #if SSPFD_DO_TIMINGS == 1
@@ -261,14 +261,17 @@ extern __thread volatile ticks sspfd_correction;
     }
 
 #  define SSPFDI_G()				\
-  asm volatile ("");				\
-  _sspfd_s_global = getticks();
+  asm volatile("" ::: "memory");		\
+  _sspfd_s_global = getticks();			\
+  asm volatile("" ::: "memory");		
 
 #  define SSPFDI_ID_G(id)			\
   asm volatile ("");				\
   if (sspfd_get_id() == id)			\
     {						\
+      asm volatile("" ::: "memory");		\
       _sspfd_s_global = getticks();		\
+      asm volatile("" ::: "memory");		\
     }
 
 #  define SSPFDO(store, entry)						\
@@ -277,23 +280,27 @@ extern __thread volatile ticks sspfd_correction;
   }
 
 #  define SSPFDO_ID(store, entry, id)					\
-  asm volatile ("");							\
+  asm volatile("" ::: "memory");					\
   if (sspfd_get_id() == id)						\
     {									\
+      asm volatile("" ::: "memory");					\
       sspfd_store[store][entry] =  getticks() - _sspfd_s[store] - sspfd_correction; \
+      asm volatile("" ::: "memory");					\
     }									\
   }
 
 #  define SSPFDO_G(store, entry)					\
-  asm volatile ("");							\
-  sspfd_store[store][entry] =  getticks() - _sspfd_s_global - sspfd_correction;
-
+  asm volatile("" ::: "memory");					\
+  sspfd_store[store][entry] =  getticks() - _sspfd_s_global - sspfd_correction;	\
+  asm volatile("" ::: "memory");					
 
 #  define SSPFDO_ID_G(store, entry, id)					\
-  asm volatile ("");							\
+  asm volatile("" ::: "memory");					\
   if (sspfd_get_id() == id)						\
     {									\
+      asm volatile("" ::: "memory");					\
       sspfd_store[store][entry] =  getticks() - _sspfd_s_global - sspfd_correction; \
+      asm volatile("" ::: "memory");					\
     }								       
 
 
