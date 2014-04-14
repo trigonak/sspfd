@@ -238,7 +238,7 @@ typedef struct sspfd_stats
 extern __thread volatile size_t sspfd_num_stores;
 extern __thread volatile ticks** sspfd_store;
 extern __thread volatile ticks* _sspfd_s;
-extern __thread volatile ticks _sspfd_s_global;
+extern __thread ticks _sspfd_s_global;
 extern __thread volatile ticks sspfd_correction;
 
 #if SSPFD_DO_TIMINGS == 1
