@@ -1,7 +1,7 @@
 sspfd
 =====
 
-sspfd if a super-simple profiler, able to measure timings with granularity of a single CPU cycle. sspfd gathers the timings and when the application decides to print the data, it does some statistical analysis no the results (i.e., std deviation, abs deviation, clustering of values) and prints the results.  
+sspfd if a super-simple profiler, able to measure timings with granularity of a single CPU cycle. sspfd gathers the timings and when the application decides to print the data, it does some statistical analysis on the results (i.e., std deviation, abs deviation, clustering of values) and prints the results.  
 For example, you can use sspfd to measure the latency of acquiring a lock, or of performing an atomic operation on some data.
 
 * Website             : https://github.com/trigonak/sspfd.git
